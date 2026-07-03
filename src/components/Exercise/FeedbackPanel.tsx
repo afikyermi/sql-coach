@@ -126,6 +126,22 @@ export function FeedbackPanel({ result, isExamMode }: Props) {
     )
   }
 
+  // Engine/infrastructure failure — not the student's fault, must not read as
+  // "wrong answer" and must never reveal expected result/solution/explanation.
+  if (result.isEngineError) {
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">⚙️</span>
+          <div>
+            <p className="font-semibold text-amber-800 mb-1">תקלה טכנית — נסה שוב</p>
+            {message && <p className="text-sm text-amber-700 whitespace-pre-line">{message}</p>}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Wrong answer
   return (
     <div className="space-y-3">

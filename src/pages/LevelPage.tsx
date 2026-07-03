@@ -10,6 +10,7 @@ import { levels } from '../data/levels'
 import { getExercisesForLevel } from '../data/exercises'
 import { validateAnswer } from '../lib/validateAnswer'
 import { loadProgress, recordExerciseResult, isLevelUnlocked } from '../lib/progress'
+import { useSqlEngine } from '../hooks/useSqlEngine'
 import type { Exercise, ValidationResult, UserProgress } from '../types'
 
 export function LevelPage() {
@@ -33,6 +34,7 @@ export function LevelPage() {
   // Level intro is expanded by default on the first exercise, collapsed (but
   // still available) on the rest.
   const [showIntro, setShowIntro] = useState(true)
+  const { status: engineStatus, retry: retryEngine } = useSqlEngine()
 
   const exercise: Exercise | undefined = exercises[exerciseIdx]
 
@@ -49,6 +51,10 @@ export function LevelPage() {
 
   const handleSubmit = useCallback(async () => {
     if (!exercise || !query.trim() || loading) return
+    // Defense-in-depth: the submit button/Ctrl+Enter are already gated by
+    // engineStatus via SqlEditor's submitDisabled, but guard here too so no
+    // path can submit into an engine that isn't ready.
+    if (engineStatus !== 'ready') return
 
     // Semicolon + DML-no-WHERE guards live in validateAnswer so learning and
     // exam modes behave identically.
@@ -56,6 +62,11 @@ export function LevelPage() {
     try {
       const validation = await validateAnswer(exercise, query)
       setResult(validation)
+
+      // An engine/infrastructure failure isn't a real answer attempt — don't
+      // count it against the student's attempts or progress.
+      if (validation.isEngineError) return
+
       setAttempts((a) => a + 1)
 
       if (validation.passed) {
@@ -82,7 +93,7 @@ export function LevelPage() {
     } finally {
       setLoading(false)
     }
-  }, [exercise, query, loading, hintsRevealed, solutionRevealed, attempts, progress])
+  }, [exercise, query, loading, engineStatus, hintsRevealed, solutionRevealed, attempts, progress])
 
   const handleConceptSubmit = useCallback(() => {
     if (!exercise?.conceptual || selectedOption === null) return
@@ -337,7 +348,19 @@ export function LevelPage() {
                   onSubmit={handleSubmit}
                   loading={loading}
                   disabled={isDone && !result?.alternativeAccepted}
+                  submitDisabled={engineStatus !== 'ready'}
                 />
+                {engineStatus === 'loading' && (
+                  <p className="text-xs text-slate-400 mt-2">⏳ טוען מנוע SQL...</p>
+                )}
+                {engineStatus === 'error' && (
+                  <div className="flex items-center justify-between gap-2 mt-2 text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">
+                    <span>⚠️ לא ניתן היה לטעון את מנוע ה-SQL</span>
+                    <button onClick={retryEngine} className="font-semibold underline hover:no-underline">
+                      ⟳ נסה שוב
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Hints */}

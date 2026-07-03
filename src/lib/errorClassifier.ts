@@ -5,6 +5,20 @@ export interface ErrorClassification {
   message: string
 }
 
+/**
+ * True when a caught error is an infrastructure/engine failure (the SQL engine's
+ * WASM failed to load or fetch) rather than a mistake in the student's query.
+ * These must never be shown or scored as a wrong SQL answer.
+ */
+export function isEngineError(msg: string): boolean {
+  return /wasm|fetching of the|failed to fetch|networkerror|webassembly/i.test(msg)
+}
+
+export const ENGINE_ERROR_MESSAGE =
+  'תקלה טכנית: מנוע ה-SQL לא נטען כרגע.\n' +
+  'זו לא שגיאה בשאילתה שלך.\n' +
+  'נסה שוב בעוד רגע.'
+
 /** Strip comments and string literals from SQL for analysis */
 export function stripCommentsAndStrings(sql: string): string {
   // Remove single-line comments

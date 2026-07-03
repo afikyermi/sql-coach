@@ -3,18 +3,39 @@ import type { Row } from '../types'
 // sql.js is loaded dynamically to avoid SSR issues
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let SQL: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let loadingPromise: Promise<any> | null = null
 
+/**
+ * Loads sql.js exactly once, even when called concurrently. Callers that race
+ * (e.g. two queries run in parallel via Promise.all) share the same in-flight
+ * load instead of each independently invoking the WASM loader — a previous
+ * version only cached the *resolved* value, so concurrent cold-start calls
+ * could trigger sql.js's WASM loader twice at once. If the load fails, the
+ * cached promise is cleared so the next call retries cleanly instead of
+ * re-awaiting an already-rejected promise forever.
+ */
 export async function initSql() {
   if (SQL) return SQL
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mod = (await import('sql.js')) as any
-  const factory = typeof mod.default === 'function' ? mod.default : mod
-  SQL = await factory({
-    // Resolve the WASM relative to the page's base URL so it loads whether the
-    // app is served from a root domain or a GitHub Pages sub-path.
-    locateFile: (file: string) => new URL(file, document.baseURI).href,
-  })
-  return SQL
+  if (!loadingPromise) {
+    loadingPromise = (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mod = (await import('sql.js')) as any
+      const factory = typeof mod.default === 'function' ? mod.default : mod
+      return factory({
+        // Resolve the WASM relative to the page's base URL so it loads whether
+        // the app is served from a root domain or a GitHub Pages sub-path.
+        locateFile: (file: string) => new URL(file, document.baseURI).href,
+      })
+    })()
+  }
+  try {
+    SQL = await loadingPromise
+    return SQL
+  } catch (err) {
+    loadingPromise = null
+    throw err
+  }
 }
 
 /** Run a query on an ephemeral database created from schema SQL.

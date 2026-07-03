@@ -9,15 +9,19 @@ interface Props {
   onSubmit: () => void
   loading: boolean
   disabled?: boolean
+  /** Blocks submission only (button + Ctrl+Enter) without disabling the editor
+   *  itself — used while the SQL engine is still loading, so the student can
+   *  keep reading/typing instead of being locked out. */
+  submitDisabled?: boolean
 }
 
-export function SqlEditor({ value, onChange, onSubmit, loading, disabled }: Props) {
+export function SqlEditor({ value, onChange, onSubmit, loading, disabled, submitDisabled }: Props) {
   const [focused, setFocused] = useState(false)
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault()
-      if (!disabled && !loading) onSubmit()
+      if (!disabled && !submitDisabled && !loading) onSubmit()
     }
   }
 
@@ -60,7 +64,7 @@ export function SqlEditor({ value, onChange, onSubmit, loading, disabled }: Prop
       </div>
       <button
         onClick={onSubmit}
-        disabled={disabled || loading || !value.trim()}
+        disabled={disabled || submitDisabled || loading || !value.trim()}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {loading ? (

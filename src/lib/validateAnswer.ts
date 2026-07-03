@@ -1,5 +1,12 @@
 import { runQuery, runDmlAndVerify, compareResults } from './sqlEngine'
-import { stripCommentsAndStrings, classifyError, missingConceptMessage, validateSemicolon } from './errorClassifier'
+import {
+  stripCommentsAndStrings,
+  classifyError,
+  missingConceptMessage,
+  validateSemicolon,
+  isEngineError,
+  ENGINE_ERROR_MESSAGE,
+} from './errorClassifier'
 import type { Exercise, ValidationResult } from '../types'
 
 /** Returns true if the query contains the keyword (outside comments/strings) */
@@ -71,7 +78,20 @@ export async function validateAnswer(
               expectedColumns: expectedResult.columns,
             }
           }
-        } catch {
+        } catch (err) {
+          // An engine/infrastructure failure here isn't a "missing concept" —
+          // surface it distinctly instead of falling through to that message.
+          const msg = err instanceof Error ? err.message : String(err)
+          if (isEngineError(msg)) {
+            return {
+              passed: false,
+              conceptPassed: false,
+              resultMatch: false,
+              errorType: 'engine_error',
+              errorMessage: ENGINE_ERROR_MESSAGE,
+              isEngineError: true,
+            }
+          }
           // Fall through to error message
         }
 
@@ -153,6 +173,16 @@ export async function validateAnswer(
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
+    if (isEngineError(msg)) {
+      return {
+        passed: false,
+        conceptPassed: true,
+        resultMatch: false,
+        errorType: 'engine_error',
+        errorMessage: ENGINE_ERROR_MESSAGE,
+        isEngineError: true,
+      }
+    }
     // Translate common SQLite errors to Hebrew
     const hebrewMsg = translateSqlError(msg)
     return {
@@ -218,7 +248,11 @@ function translateSqlError(msg: string): string {
     )
   }
 
-  return `שגיאה: ${msg}`
+  return (
+    `אירעה שגיאה בלתי צפויה בהרצת השאילתה\n` +
+    `פרטי השגיאה: ${msg}\n` +
+    `איך לתקן: בדוק את תחביר השאילתה, או נסה לנסח אותה מחדש`
+  )
 }
 
 function buildSyntaxMessage(near: string): string {

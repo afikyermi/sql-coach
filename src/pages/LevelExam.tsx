@@ -8,6 +8,7 @@ import { levels } from '../data/levels'
 import { getExercisesForLevel } from '../data/exercises'
 import { validateAnswer } from '../lib/validateAnswer'
 import { loadProgress, recordExamResult, isLevelUnlocked } from '../lib/progress'
+import { useSqlEngine } from '../hooks/useSqlEngine'
 import type { ValidationResult, UserProgress } from '../types'
 
 export function LevelExam() {
@@ -24,15 +25,27 @@ export function LevelExam() {
   const [answered, setAnswered] = useState(false)
   const [progress, setProgress] = useState<UserProgress>(() => loadProgress())
   const [examResults, setExamResults] = useState<Record<string, ValidationResult>>({})
+  const { status: engineStatus, retry: retryEngine } = useSqlEngine()
 
   const exercise = exercises[exerciseIdx]
 
   const handleSubmit = useCallback(async () => {
     if (!exercise || !query.trim() || loading || answered) return
+    // Defense-in-depth: the submit button/Ctrl+Enter are already gated by
+    // engineStatus via SqlEditor's submitDisabled, but guard here too so no
+    // path can submit into an engine that isn't ready.
+    if (engineStatus !== 'ready') return
+
     setLoading(true)
     try {
       const validation = await validateAnswer(exercise, query)
       setResult(validation)
+
+      // An engine/infrastructure failure isn't a real answer attempt — don't
+      // burn the student's one exam attempt or record it as wrong. Leave the
+      // question open so they can resubmit.
+      if (validation.isEngineError) return
+
       setAnswered(true)
       setExamResults((prev) => ({ ...prev, [exercise.id]: validation }))
       // Exam outcomes go to a separate store — they never mint practice mastery.
@@ -44,7 +57,7 @@ export function LevelExam() {
     } finally {
       setLoading(false)
     }
-  }, [exercise, query, loading, answered, progress])
+  }, [exercise, query, loading, answered, engineStatus, progress])
 
   const goNext = () => {
     if (exerciseIdx + 1 < exercises.length) {
@@ -122,7 +135,19 @@ export function LevelExam() {
                 onSubmit={handleSubmit}
                 loading={loading}
                 disabled={answered}
+                submitDisabled={engineStatus !== 'ready'}
               />
+              {engineStatus === 'loading' && (
+                <p className="text-xs text-slate-400 mt-2">⏳ טוען מנוע SQL...</p>
+              )}
+              {engineStatus === 'error' && (
+                <div className="flex items-center justify-between gap-2 mt-2 text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">
+                  <span>⚠️ לא ניתן היה לטעון את מנוע ה-SQL</span>
+                  <button onClick={retryEngine} className="font-semibold underline hover:no-underline">
+                    ⟳ נסה שוב
+                  </button>
+                </div>
+              )}
             </div>
 
             {result && (

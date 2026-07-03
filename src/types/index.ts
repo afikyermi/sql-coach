@@ -84,6 +84,9 @@ export interface ValidationResult {
   /** True when result matches but required concept keyword was missing */
   alternativeAccepted?: boolean
   alternativeMessage?: string
+  /** True when this "failure" is an SQL-engine/infrastructure error, not a
+   *  mistake in the student's query — must never be scored as a wrong answer. */
+  isEngineError?: boolean
 }
 
 export type Row = Record<string, string | number | null>
