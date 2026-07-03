@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Heebo', sans-serif;
+  direction: rtl;
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+/* SQL editor must be LTR */
+.sql-editor,
+.sql-editor textarea,
+.sql-editor pre,
+.result-table {
+  direction: ltr;
+  text-align: left;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Prism token colors */
+.token.keyword { color: #7c3aed; font-weight: 600; }
+.token.function { color: #0369a1; }
+.token.string { color: #15803d; }
+.token.number { color: #b45309; }
+.token.operator { color: #be185d; }
+.token.comment { color: #94a3b8; font-style: italic; }
+.token.punctuation { color: #64748b; }
+
+/* Scrollable tables */
+.table-scroll {
+  overflow-x: auto;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* Feedback diff layout */
+.diff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .diff-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Smooth transitions */
+.fade-in {
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
