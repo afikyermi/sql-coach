@@ -25,7 +25,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      # `npm install` (not `npm ci`): the lock file's optional native/WASM deps
+      # (e.g. @emnapi/*) resolve differently on the Linux runner than on the
+      # machine that generated the lock, which makes strict `npm ci` fail.
+      - run: npm install
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
