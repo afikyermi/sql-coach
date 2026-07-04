@@ -39,14 +39,14 @@ function MiniTable({
         {side === 'left' && <span className="text-xs text-slate-400">(שמאל)</span>}
         {side === 'right' && <span className="text-xs text-slate-400">(ימין)</span>}
       </div>
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
-        <table className="result-table w-full text-xs">
+      <div className="table-scroll border border-slate-200 rounded-lg overflow-hidden">
+        <table className="result-table w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               {table.columns.map((col) => (
                 <th
                   key={col}
-                  className={`px-2 py-1.5 text-left font-semibold whitespace-nowrap ${
+                  className={`px-3 py-2 text-left font-semibold whitespace-nowrap ${
                     col === joinKey
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'text-slate-600'
@@ -64,7 +64,7 @@ function MiniTable({
                 {row.map((cell, j) => (
                   <td
                     key={j}
-                    className={`px-2 py-1.5 text-left whitespace-nowrap ${
+                    className={`px-3 py-2 text-left whitespace-nowrap ${
                       table.columns[j] === joinKey
                         ? 'bg-yellow-50 font-medium text-yellow-900'
                         : 'text-slate-700'
@@ -94,12 +94,12 @@ export function JoinVisualizer({ leftTable, rightTable, joinKey, joinType = 'INN
         {joinLabels[joinType]}
       </div>
 
-      {/* Two tables side by side */}
-      <div className="flex gap-4 items-start">
+      {/* Two tables side by side (stacked on narrow screens) */}
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-start">
         <MiniTable table={leftTable} joinKey={joinKey} side="left" />
 
         {/* Join symbol */}
-        <div className="flex flex-col items-center justify-center pt-8 gap-1">
+        <div className="flex flex-row sm:flex-col items-center justify-center py-1 sm:py-0 sm:pt-8 gap-1">
           <div className="w-6 h-px bg-slate-400" />
           <div className="text-lg">⊕</div>
           <div className="w-6 h-px bg-slate-400" />

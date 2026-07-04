@@ -298,6 +298,29 @@ export function LevelPage() {
           </div>
         ) : (
           /* SQL exercise */
+          <div className="space-y-6">
+            {/* JOIN visualizer spans the full page width — squeezed into a
+                half-width grid column it clipped columns on wide join tables. */}
+            {isJoinLevel && exercise.sampleData.length >= 2 && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-5">
+                <h3 className="text-sm font-semibold text-slate-600 mb-3">טבלאות לחיבור</h3>
+                <JoinVisualizer
+                  leftTable={exercise.sampleData[0]}
+                  rightTable={exercise.sampleData[1]}
+                  joinKey="dept_id"
+                  joinType={
+                    /RIGHT JOIN/i.test(exercise.expectedQuery)
+                      ? 'RIGHT'
+                      : /LEFT JOIN/i.test(exercise.expectedQuery)
+                      ? 'LEFT'
+                      : /FULL/i.test(exercise.expectedQuery)
+                      ? 'FULL'
+                      : 'INNER'
+                  }
+                />
+              </div>
+            )}
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left: Task + tables */}
             <div className="space-y-4">
@@ -309,34 +332,15 @@ export function LevelPage() {
                 <p className="text-sm text-slate-700 leading-relaxed">{exercise.description}</p>
               </div>
 
-              {/* JOIN visualizer or regular table viewers */}
-              {isJoinLevel && exercise.sampleData.length >= 2 ? (
+              {/* Regular table viewer for non-JOIN levels (JOIN levels show
+                  their tables in the full-width block above instead) */}
+              {!(isJoinLevel && exercise.sampleData.length >= 2) && exercise.sampleData.length > 0 && (
                 <div className="bg-white border border-slate-200 rounded-2xl p-5">
-                  <h3 className="text-sm font-semibold text-slate-600 mb-3">טבלאות לחיבור</h3>
-                  <JoinVisualizer
-                    leftTable={exercise.sampleData[0]}
-                    rightTable={exercise.sampleData[1]}
-                    joinKey="dept_id"
-                    joinType={
-                      /RIGHT JOIN/i.test(exercise.expectedQuery)
-                        ? 'RIGHT'
-                        : /LEFT JOIN/i.test(exercise.expectedQuery)
-                        ? 'LEFT'
-                        : /FULL/i.test(exercise.expectedQuery)
-                        ? 'FULL'
-                        : 'INNER'
-                    }
-                  />
+                  <h3 className="text-sm font-semibold text-slate-600 mb-3">נתוני הטבלה</h3>
+                  {exercise.sampleData.map((t) => (
+                    <TableViewer key={t.tableName} table={t} />
+                  ))}
                 </div>
-              ) : (
-                exercise.sampleData.length > 0 && (
-                  <div className="bg-white border border-slate-200 rounded-2xl p-5">
-                    <h3 className="text-sm font-semibold text-slate-600 mb-3">נתוני הטבלה</h3>
-                    {exercise.sampleData.map((t) => (
-                      <TableViewer key={t.tableName} table={t} />
-                    ))}
-                  </div>
-                )
               )}
             </div>
 
@@ -403,6 +407,7 @@ export function LevelPage() {
                 </div>
               )}
             </div>
+          </div>
           </div>
         )}
       </main>
