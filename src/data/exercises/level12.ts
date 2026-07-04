@@ -171,7 +171,7 @@ INSERT INTO sales VALUES
         [7, 'בגדים', 350],
       ],
     }],
-    expectedQuery: 'SELECT category, SUM(amount) AS סה"כ FROM sales GROUP BY category HAVING SUM(amount) > 3000',
+    expectedQuery: "SELECT category, SUM(amount) AS 'סה\"כ' FROM sales GROUP BY category HAVING SUM(amount) > 3000",
     requiredConcepts: [
       { type: 'requiresKeyword', keyword: 'GROUP BY', message: 'המשימה מחייבת GROUP BY' },
       { type: 'requiresKeyword', keyword: 'HAVING', message: 'המשימה מחייבת HAVING' },

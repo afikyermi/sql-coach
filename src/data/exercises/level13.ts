@@ -646,7 +646,7 @@ INSERT INTO employees VALUES
         ],
       },
     ],
-    expectedQuery: 'SELECT c.first_name, SUM(o.amount) AS סה"כ FROM customers c INNER JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_id, c.first_name HAVING SUM(o.amount) > 1500',
+    expectedQuery: "SELECT c.first_name, SUM(o.amount) AS 'סה\"כ' FROM customers c INNER JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_id, c.first_name HAVING SUM(o.amount) > 1500",
     requiredConcepts: [
       { type: 'requiresKeyword', keyword: 'JOIN', message: 'המשימה מחייבת JOIN' },
       { type: 'requiresKeyword', keyword: 'ON', message: 'יש להגדיר ON' },

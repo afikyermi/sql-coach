@@ -9,6 +9,7 @@ import { JoinVisualizer } from '../components/Exercise/JoinVisualizer'
 import { levels } from '../data/levels'
 import { getExercisesForLevel } from '../data/exercises'
 import { validateAnswer } from '../lib/validateAnswer'
+import { withTrailingSemicolon } from '../lib/errorClassifier'
 import { loadProgress, recordExerciseResult, isLevelUnlocked } from '../lib/progress'
 import { useSqlEngine } from '../hooks/useSqlEngine'
 import type { Exercise, ValidationResult, UserProgress } from '../types'
@@ -372,7 +373,7 @@ export function LevelPage() {
                     onRevealHint={handleRevealHint}
                     onRevealSolution={handleRevealSolution}
                     solutionRevealed={solutionRevealed}
-                    solution={exercise.expectedQuery}
+                    solution={withTrailingSemicolon(exercise.expectedQuery)}
                   />
                 </div>
               )}

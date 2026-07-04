@@ -73,7 +73,7 @@ export const level11Exercises: Exercise[] = [
     description: 'מה סכום כל המשכורות בכל מחלקה?',
     schema: empSchema,
     sampleData: empSample,
-    expectedQuery: 'SELECT department, SUM(salary) AS סה"כ_שכר FROM employees GROUP BY department',
+    expectedQuery: "SELECT department, SUM(salary) AS 'סה\"כ_שכר' FROM employees GROUP BY department",
     requiredConcepts: [{ type: 'requiresKeyword', keyword: 'GROUP BY', message: 'המשימה מחייבת שימוש ב-GROUP BY' }],
     hints: [
       'SUM(salary) מחשבת סכום',
@@ -192,7 +192,7 @@ INSERT INTO sales VALUES
         [7, 'בגדים', 350, '2024-03-10'],
       ],
     }],
-    expectedQuery: 'SELECT category, SUM(amount) AS סה"כ_מכירות FROM sales GROUP BY category',
+    expectedQuery: "SELECT category, SUM(amount) AS 'סה\"כ_מכירות' FROM sales GROUP BY category",
     requiredConcepts: [{ type: 'requiresKeyword', keyword: 'GROUP BY', message: 'המשימה מחייבת שימוש ב-GROUP BY' }],
     hints: [
       'GROUP BY category',

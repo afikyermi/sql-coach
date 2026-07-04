@@ -167,6 +167,15 @@ export function validateSemicolon(sql: string): string | null {
   return null
 }
 
+/**
+ * Returns `sql` guaranteed to end with exactly one trailing semicolon.
+ * Used to render the "show solution" text so that copying it verbatim satisfies
+ * validateSemicolon — the stored expectedQuery deliberately omits the `;`.
+ */
+export function withTrailingSemicolon(sql: string): string {
+  return sql.replace(/[\s;]+$/, '') + ';'
+}
+
 /** Map a required concept to a missing-keyword Hebrew message */
 export function missingConceptMessage(keyword: string): string {
   const messages: Record<string, string> = {
